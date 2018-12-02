@@ -1,21 +1,21 @@
 from flask import Flask, request, Response
 
 from viber_chatbot import ViberChatBot
-from sheet_adventure import SheetAdventure
+from message_handler import MessageHandler
 
 app = Flask(__name__)
 
 viber_chatbot = ViberChatBot()
-sheet_adventure = SheetAdventure('tenopia')
+message_handler = MessageHandler()
 
 
 @app.route('/viber_hook', methods=['POST'])
 def viber_hook():
-    received_message = viber_chatbot.get_message(request)
+    message = viber_chatbot.get_message(request)
 
-    if received_message is not None:
-        message = sheet_adventure.get_page(received_message['text'])
-        viber_chatbot.send_message(received_message['user_id'], message)
+    if message is not None:
+        answer = message_handler.handle(message['user_id'], message['text'])
+        viber_chatbot.send_message(message['user_id'], answer)
 
     return Response(status=200)
 

@@ -27,17 +27,26 @@ class SheetAdventure(Adventure):
 
         response = {}
         if len(row) > 1:
-            if row[1] != '' and row[1] != ' ':
+            if row[1] != '':
                 response.update({'text': row[1]})
         if len(row) > 2:
-            response.update({'options': row[2].split('#')})
+            if row[2] != '':
+                response.update({'options': row[2].split('#')})
         if len(row) > 3:
             response.update({'image': row[3]})
 
         return response
 
     def record_action(self, user_id, action):
-        pass
+        try:
+            row_number = self.user_sheet.find(user_id).row
+            actions = self.user_sheet.cell(row_number, 2).value
+            self.user_sheet.update_cell(row_number, 2, actions + '#' + action)
+        except gspread.CellNotFound:
+            self.user_sheet.append_row([user_id, action])
 
     def get_actions(self, user_id):
-        pass
+        row_number = self.user_sheet.find(user_id).row
+        actions = self.user_sheet.cell(row_number, 2).value
+        actions = actions.split('#')
+        return actions
