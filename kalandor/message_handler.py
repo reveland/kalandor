@@ -1,4 +1,4 @@
-from sheet_adventure import SheetAdventure
+from kalandor.provider.sheet_adventure import SheetAdventure
 
 
 class MessageHandler(object):

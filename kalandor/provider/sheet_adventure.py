@@ -3,7 +3,7 @@ import ast
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from adventure import Adventure
+from kalandor.provider.adventure import Adventure
 
 
 class SheetAdventure(Adventure):

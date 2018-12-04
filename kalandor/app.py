@@ -1,7 +1,7 @@
 from flask import Flask, request, Response
 
-from viber_chatbot import ViberChatBot
-from message_handler import MessageHandler
+from kalandor.chatbot.viber_chatbot import ViberChatBot
+from kalandor.message_handler import MessageHandler
 
 app = Flask(__name__)
 
