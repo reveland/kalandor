@@ -10,6 +10,16 @@ class SelectorHandler(Handler):
         self.provider = provider
 
     def handle(self, user_id, message):
-        message = {}
-        message['text'] = 'Adventure selection is not supported yet.'
-        return message
+        book = message
+        books = self.provider.get_books()
+        if book in books:
+            start_point = self.provider.select_book(user_id, book)
+            answer = {}
+            answer['text'] = 'Adventure selected, please click to continue.'
+            answer['options'] = [str(start_point) + '-Start!']
+            return answer
+        else:
+            answer = {}
+            answer['text'] = 'Please choose an adventure:'
+            answer['options'] = self.provider.get_books()
+            return answer

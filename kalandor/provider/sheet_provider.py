@@ -23,13 +23,14 @@ class SheetProvider(Provider):
         sheet_key = '1hzIsPhduZ_AIxk3KWZaLOIl-JIqbTDjx9s0jMpR2WKU'
         self.document = client.open_by_key(sheet_key)
         self.user_sheet = self.document.worksheet('users')
+        self.book_sheet = self.document.worksheet('books')
 
     def get_page(self, book_name, page_id):
         book_sheet = self.document.worksheet(book_name)
 
         cell = book_sheet.find(page_id)
-        row_number = cell.row
-        row = book_sheet.row_values(row_number)
+        row_index = cell.row
+        row = book_sheet.row_values(row_index)
 
         page = {}
         if len(row) > 1:
@@ -45,28 +46,53 @@ class SheetProvider(Provider):
 
     def record_action(self, user_id, action):
         try:
-            row_number = self.user_sheet.find(user_id).row
-            actions = self.user_sheet.cell(row_number + 1, 2).value
+            row_index = self.user_sheet.find(user_id).row
+            actions = self.user_sheet.cell(row_index + 1, 2).value
             updated_actions = actions + '#' + action
-            self.user_sheet.update_cell(row_number + 1, 2, updated_actions)
+            self.user_sheet.update_cell(row_index + 1, 2, updated_actions)
             logger.info('action recorded for %s: %s', user_id, action)
         except gspread.CellNotFound:
             logger.info('first action of %s recorded: %s', user_id, action)
             self.user_sheet.append_row([user_id, action])
 
     def get_actions(self, user_id):
-        row_number = self.user_sheet.find(user_id).row
-        actions = self.user_sheet.cell(row_number + 1, 2).value
+        row_index = self.user_sheet.find(user_id).row
+        actions = self.user_sheet.cell(row_index + 1, 2).value
         actions = actions.split('#')
         logger.info('actions found for %s', user_id)
         return actions
 
     def get_current_book_name(self, user_id):
-        row_number = self.user_sheet.find(user_id).row
-        current_book_name = self.user_sheet.cell(row_number, 2).value
+        try:
+            row_index = self.user_sheet.find(user_id).row
+            current_book_name = self.user_sheet.cell(row_index, 2).value
+        except gspread.CellNotFound:
+            self.user_sheet.append_row([user_id, ''])
+            self.user_sheet.append_row(['#', ''])
+            current_book_name = ''
         if current_book_name is '':
             logger.info('current book was not found for user: %s', user_id)
             return None
         else:
             logger.info('current book found: %s', current_book_name)
             return current_book_name
+
+    def get_books(self):
+        books = self.book_sheet.col_values(2)
+        return books
+
+    def select_book(self, user_id, book_name):
+        row_index = self.user_sheet.find(user_id).row
+        user_books = self.user_sheet.row_values(row_index)[2:]
+        if book_name in user_books:
+            col_index = user_books.index(book_name)
+            actions = self.user_sheet.cell(row_index + 1, col_index + 2).value
+            self.user_sheet.update_cell(row_index, 2, book_name)
+            self.user_sheet.update_cell(row_index + 1, 2, actions)
+            logger.info('started book selected for %s: %s', user_id, book_name)
+            return actions.split('#')[-1]
+        else:
+            self.user_sheet.update_cell(row_index, 2, book_name)
+            self.user_sheet.update_cell(row_index + 1, 2, '')
+            logger.info('book selected for %s: %s', user_id, book_name)
+            return 1
