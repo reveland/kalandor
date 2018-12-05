@@ -7,23 +7,30 @@ logger = logging.getLogger(__name__)
 class MessageHandler(object):
 
     def __init__(self):
-        self.sheet_adventure = SheetAdventure('kalandor')
+        self.sheet_adventure = SheetAdventure()
 
     def handle(self, user_id, message):
+        book_name = self.sheet_adventure.get_current_book_name(user_id)
+        if book_name is None:
+            message = {}
+            message['text'] = 'Adventure selection is not supported yet.'
+            return message
+
         page_id = message.split('-')[0]
 
         try:
-            page = self.sheet_adventure.get_page(page_id)
+            page = self.sheet_adventure.get_page(book_name, page_id)
         except Exception:
             logger.warn('page not found: %s', page_id)
-            return self.handle_free_text(user_id, message)
+            return self.handle_free_text(book_name, user_id, message)
 
         page = self.check_juction(user_id, page)
 
         if 'options' not in page:
             logger.info('options not found for %s, add previous.', page_id)
             actions = self.sheet_adventure.get_actions(user_id)
-            page['options'] = self.get_last_options(page_id, actions)
+            page['options'] = self.get_last_options(
+                book_name, page_id, actions)
 
         self.sheet_adventure.record_action(user_id, page_id)
 
@@ -44,12 +51,12 @@ class MessageHandler(object):
                 page['text'] = parts[0] + parts[3]
         return page
 
-    def handle_free_text(self, user_id, message):
+    def handle_free_text(self, book_name, user_id, message):
         logger.info('handle free text from %s: %s', user_id, message)
         self.sheet_adventure.record_action(user_id, message)
 
         actions = self.sheet_adventure.get_actions(user_id)
-        options = self.get_last_options(message, actions)
+        options = self.get_last_options(book_name, message, actions)
 
         page = {}
         page['text'] = '"' + message + '" - gondoltad magadban..'
@@ -57,16 +64,16 @@ class MessageHandler(object):
 
         return page
 
-    def get_last_options(self, action, actions):
+    def get_last_options(self, book_name, action, actions):
         logger.info('get last options: %s; %s', actions, action)
         actions = list(filter(lambda a: a != action, actions))
         if not str(actions[-1]).isdigit():
-            return self.get_last_options(actions.pop(), actions)
+            return self.get_last_options(book_name, actions.pop(), actions)
         try:
-            page = self.sheet_adventure.get_page(actions[-1])
+            page = self.sheet_adventure.get_page(book_name, actions[-1])
         except Exception:
-            return self.get_last_options(actions.pop(), actions)
+            return self.get_last_options(book_name, actions.pop(), actions)
         if 'options' in page:
             return page['options']
         else:
-            return self.get_last_options(actions.pop(), actions)
+            return self.get_last_options(book_name, actions.pop(), actions)
