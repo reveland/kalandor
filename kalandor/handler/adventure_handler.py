@@ -1,25 +1,19 @@
 import logging
-from kalandor.provider.sheet_adventure import SheetAdventure
+from kalandor.handler.handler import Handler
 
 logger = logging.getLogger(__name__)
 
 
-class MessageHandler(object):
+class AdventureHandler(Handler):
 
-    def __init__(self):
-        self.sheet_adventure = SheetAdventure()
+    def __init__(self, provider):
+        self.provider = provider
 
-    def handle(self, user_id, message):
-        book_name = self.sheet_adventure.get_current_book_name(user_id)
-        if book_name is None:
-            message = {}
-            message['text'] = 'Adventure selection is not supported yet.'
-            return message
-
+    def handle(self, book_name, user_id, message):
         page_id = message.split('-')[0]
 
         try:
-            page = self.sheet_adventure.get_page(book_name, page_id)
+            page = self.provider.get_page(book_name, page_id)
         except Exception:
             logger.warn('page not found: %s', page_id)
             return self.handle_free_text(book_name, user_id, message)
@@ -28,11 +22,11 @@ class MessageHandler(object):
 
         if 'options' not in page:
             logger.info('options not found for %s, add previous.', page_id)
-            actions = self.sheet_adventure.get_actions(user_id)
+            actions = self.provider.get_actions(user_id)
             page['options'] = self.get_last_options(
                 book_name, page_id, actions)
 
-        self.sheet_adventure.record_action(user_id, page_id)
+        self.provider.record_action(user_id, page_id)
 
         return page
 
@@ -43,7 +37,7 @@ class MessageHandler(object):
         if len(parts) == 4:
             logger.info('juction found: go %s if %s else continue',
                         parts[2], parts[1])
-            if parts[1] in self.sheet_adventure.get_actions(user_id):
+            if parts[1] in self.provider.get_actions(user_id):
                 page = self.handle(user_id, parts[2])
                 page['text'] = parts[0] + page['text']
                 return page
@@ -53,9 +47,9 @@ class MessageHandler(object):
 
     def handle_free_text(self, book_name, user_id, message):
         logger.info('handle free text from %s: %s', user_id, message)
-        self.sheet_adventure.record_action(user_id, message)
+        self.provider.record_action(user_id, message)
 
-        actions = self.sheet_adventure.get_actions(user_id)
+        actions = self.provider.get_actions(user_id)
         options = self.get_last_options(book_name, message, actions)
 
         page = {}
@@ -70,7 +64,7 @@ class MessageHandler(object):
         if not str(actions[-1]).isdigit():
             return self.get_last_options(book_name, actions.pop(), actions)
         try:
-            page = self.sheet_adventure.get_page(book_name, actions[-1])
+            page = self.provider.get_page(book_name, actions[-1])
         except Exception:
             return self.get_last_options(book_name, actions.pop(), actions)
         if 'options' in page:

@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class Adventure(object):
+class Provider(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod

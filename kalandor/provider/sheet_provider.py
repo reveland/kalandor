@@ -4,12 +4,12 @@ import logging
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from kalandor.provider.adventure import Adventure
+from kalandor.provider.provider import Provider
 
 logger = logging.getLogger(__name__)
 
 
-class SheetAdventure(Adventure):
+class SheetProvider(Provider):
 
     def __init__(self):
         scope = ['https://spreadsheets.google.com/feeds',

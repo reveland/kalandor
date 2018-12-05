@@ -4,7 +4,7 @@ import json
 import logging.config
 
 from kalandor.chatbot.viber_chatbot import ViberChatBot
-from kalandor.message_handler import MessageHandler
+from kalandor.handler.message_handler import MessageHandler
 
 with open('log_config.json', 'r') as log_config_json:
     log_config_dict = json.load(log_config_json)
