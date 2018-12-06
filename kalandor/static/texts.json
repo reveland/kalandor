@@ -2,11 +2,13 @@
   "en": {
     "adventure_selected": "Adventure selected, please click to continue.",
     "choose_adventure": "Please choose an adventure:",
-    "free_text": "\"%s\" - you wondering.."
+    "free_text": "\"%s\" - you wondering..",
+    "unknown_command": "Unknown command: %s"
   },
   "hu": {
     "adventure_selected": "Kaland kivalasztva, kattints a folytatashoz.",
     "choose_adventure": "Valassz egy kalandot:",
-    "free_text": "\"%s\" - gondoltad magadban."
+    "free_text": "\"%s\" - gondoltad magadban.",
+    "unknown_command": "Ismeretlen parancs: %s"
   }
 }

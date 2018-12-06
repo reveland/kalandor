@@ -3,6 +3,7 @@ from kalandor.provider.sheet_provider import SheetProvider
 from kalandor.handler.handler import Handler
 from kalandor.handler.selector_handler import SelectorHandler
 from kalandor.handler.adventure_handler import AdventureHandler
+from kalandor.handler.command_handler import CommandHandler
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +14,11 @@ class MessageHandler(Handler):
         self.sheet_provider = SheetProvider()
         self.adventure_selector_handler = SelectorHandler(self.sheet_provider)
         self.adventure_handler = AdventureHandler(self.sheet_provider)
+        self.command_handler = CommandHandler(self.sheet_provider)
 
     def handle(self, user_id, message):
+        if message[0] == '/':
+            return self.command_handler.handle(user_id, message)
         book_name = self.sheet_provider.get_current_book_name(user_id)
         if book_name is None:
             return self.adventure_selector_handler.handle(user_id, message)

@@ -89,7 +89,7 @@ class SheetProvider(Provider):
             self.user_sheet.update_cell(row_index, 2, book_name)
             self.user_sheet.update_cell(row_index + 1, 2, actions)
             logger.info('started book selected for %s: %s', user_id, book_name)
-            return actions.split('#')[-1]
+            return actions.split('#')[-1] # this is not always right
         else:
             self.user_sheet.update_cell(row_index, 2, book_name)
             self.user_sheet.update_cell(row_index + 1, 2, '')

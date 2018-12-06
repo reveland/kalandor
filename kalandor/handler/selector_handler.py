@@ -17,7 +17,7 @@ class SelectorHandler(Handler):
         book = message
         books = self.provider.get_books()
         if book in books:
-            start_point = self.provider.select_book(user_id, book)
+            start_point = self.provider.select_book(user_id, book) # dont't do this
             answer = {}
             answer['text'] = texts[str(environ['LAN'])]['adventure_selected']
             answer['options'] = [str(start_point) + '-Start!']
