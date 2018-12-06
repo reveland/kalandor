@@ -1,6 +1,9 @@
 import logging
 from kalandor.handler.handler import Handler
+import json
 
+with open('kalandor/static/texts.json', 'r') as texts_json:
+    texts = json.load(texts_json)
 logger = logging.getLogger(__name__)
 
 
@@ -10,6 +13,7 @@ class AdventureHandler(Handler):
         self.provider = provider
 
     def handle(self, book_name, user_id, message):
+        # this should use the user_id to get the book_name, but well..
         page_id = message.split('-')[0]
 
         try:
@@ -53,7 +57,7 @@ class AdventureHandler(Handler):
         options = self.get_last_options(book_name, message, actions)
 
         page = {}
-        page['text'] = '"' + message + '" - gondoltad magadban..'
+        page['text'] = texts['free_text'] % message
         page['options'] = options
 
         return page

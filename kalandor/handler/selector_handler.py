@@ -1,6 +1,9 @@
 import logging
 from kalandor.handler.handler import Handler
+import json
 
+with open('kalandor/static/texts.json', 'r') as texts_json:
+    texts = json.load(texts_json)
 logger = logging.getLogger(__name__)
 
 
@@ -15,11 +18,11 @@ class SelectorHandler(Handler):
         if book in books:
             start_point = self.provider.select_book(user_id, book)
             answer = {}
-            answer['text'] = 'Adventure selected, please click to continue.'
+            answer['text'] = texts['adventure_selected']
             answer['options'] = [str(start_point) + '-Start!']
             return answer
         else:
             answer = {}
-            answer['text'] = 'Please choose an adventure:'
+            answer['text'] = texts['choose_adventure']
             answer['options'] = self.provider.get_books()
             return answer

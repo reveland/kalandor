@@ -1,19 +1,15 @@
 from flask import Flask, request, Response
-
 import json
 import logging.config
-
 from kalandor.chatbot.viber_chatbot import ViberChatBot
 from kalandor.handler.message_handler import MessageHandler
 
 with open('log_config.json', 'r') as log_config_json:
     log_config_dict = json.load(log_config_json)
-
 logging.config.dictConfig(log_config_dict)
 
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
-
 viber_chatbot = ViberChatBot()
 message_handler = MessageHandler()
 

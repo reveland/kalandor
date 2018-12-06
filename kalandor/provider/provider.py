@@ -18,3 +18,17 @@ class Provider(object):
     def get_actions(self, user_id):
         """Get an user prev actions."""
         pass
+
+    @abstractmethod
+    def get_current_book_name(self, user_id):
+        """The the user currently played book."""
+        pass
+
+    @abstractmethod
+    def get_books(self):
+        """Get all the book there is."""
+        pass
+
+    @abstractmethod
+    def select_book(self, user_id, book_name):
+        """Select the a new currently played book for player"""

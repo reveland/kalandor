@@ -3,7 +3,6 @@ import ast
 import logging
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-
 from kalandor.provider.provider import Provider
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ class SheetProvider(Provider):
             creds_dict, scope)
         client = gspread.authorize(creds)
 
-        sheet_key = '1hzIsPhduZ_AIxk3KWZaLOIl-JIqbTDjx9s0jMpR2WKU'
+        sheet_key = os.environ['SHEET_KEY']
         self.document = client.open_by_key(sheet_key)
         self.user_sheet = self.document.worksheet('users')
         self.book_sheet = self.document.worksheet('books')

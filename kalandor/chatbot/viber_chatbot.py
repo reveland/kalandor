@@ -9,7 +9,6 @@ from viberbot.api.viber_requests import ViberDeliveredRequest
 from viberbot.api.messages.text_message import TextMessage
 from viberbot.api.messages.keyboard_message import KeyboardMessage
 from viberbot.api.messages.picture_message import PictureMessage
-
 from kalandor.chatbot.chatbot import ChatBot
 
 
