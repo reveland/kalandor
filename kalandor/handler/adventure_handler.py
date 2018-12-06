@@ -1,6 +1,7 @@
 import logging
-from kalandor.handler.handler import Handler
 import json
+from os import environ
+from kalandor.handler.handler import Handler
 
 with open('kalandor/static/texts.json', 'r') as texts_json:
     texts = json.load(texts_json)
@@ -57,7 +58,7 @@ class AdventureHandler(Handler):
         options = self.get_last_options(book_name, message, actions)
 
         page = {}
-        page['text'] = texts['free_text'] % message
+        page['text'] = texts[environ['LAN']]['free_text'] % message
         page['options'] = options
 
         return page
