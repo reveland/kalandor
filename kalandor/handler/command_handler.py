@@ -17,6 +17,7 @@ class CommandHandler(Handler):
         command = message[1:]
 
         if command == 'select_book':
+            # take away book (store the progress)
             self.provider.select_book(user_id, '')
             answer = {}
             answer['text'] = texts[environ['LAN']]['choose_adventure']

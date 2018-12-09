@@ -14,6 +14,22 @@ viber_chatbot = ViberChatBot()
 message_handler = MessageHandler()
 
 
+@app.route('/chat/')
+def chat():
+    message = request.args.get('message')
+    answer = ''
+    if message is not None:
+        answer = message_handler.handle('local', message)
+    form = """
+            <form action="/chat">
+                <input type="text" name="message"><br>
+                <input type="submit" value="Submit">
+            </form>
+            %s
+           """ % answer
+    return form
+
+
 @app.route('/viber_hook', methods=['POST'])
 def viber_hook():
     logger.debug('Viber hook receive request: %s', request)
