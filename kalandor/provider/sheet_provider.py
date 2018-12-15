@@ -83,15 +83,41 @@ class SheetProvider(Provider):
     def select_book(self, user_id, book_name):
         row_index = self.user_sheet.find(user_id).row
         user_books = self.user_sheet.row_values(row_index)[2:]
+        # save to existed if possible
+        current_book_name = self.user_sheet.cell(row_index, 2).value
+        current_book_progress = self.user_sheet.cell(
+            row_index + 1, 2).value
+        self.user_sheet.update_cell(
+            row_index, len(user_books) + 3, current_book_name)
+        self.user_sheet.update_cell(
+            row_index + 1, len(user_books) + 3, current_book_progress)
         if book_name in user_books:
             col_index = user_books.index(book_name)
             actions = self.user_sheet.cell(row_index + 1, col_index + 2).value
             self.user_sheet.update_cell(row_index, 2, book_name)
             self.user_sheet.update_cell(row_index + 1, 2, actions)
             logger.info('started book selected for %s: %s', user_id, book_name)
-            return actions.split('#')[-1] # this is not always right
         else:
+            # load existed if there is
             self.user_sheet.update_cell(row_index, 2, book_name)
             self.user_sheet.update_cell(row_index + 1, 2, '')
             logger.info('book selected for %s: %s', user_id, book_name)
-            return 1
+
+    def get_last_valid_page(self, book_name, action, actions):
+        logger.info('get last valid page: %s; %s', actions, action)
+        if not actions or actions[0] == '':
+            # record the action
+            book_row_index = self.book_sheet.find(book_name).row
+            book_pages = self.book_sheet.cell(book_row_index, 3).value
+            return self.get_page(book_name, book_pages.split('#')[0])
+        actions = list(filter(lambda a: a != action, actions))
+        if not str(actions[-1]).isdigit():
+            return self.get_last_valid_page(book_name, actions.pop(), actions)
+        try:
+            page = self.get_page(book_name, actions[-1])
+        except Exception:
+            return self.get_last_valid_page(book_name, actions.pop(), actions)
+        if 'options' in page:
+            return page
+        else:
+            return self.get_last_valid_page(book_name, actions.pop(), actions)

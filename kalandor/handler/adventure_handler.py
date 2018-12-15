@@ -1,7 +1,7 @@
 import logging
 import json
-from os import environ
 from kalandor.handler.handler import Handler
+from kalandor.handler.free_text_handler import FreeTextHandler
 
 with open('kalandor/static/texts.json', 'r') as texts_json:
     texts = json.load(texts_json)
@@ -12,24 +12,24 @@ class AdventureHandler(Handler):
 
     def __init__(self, provider):
         self.provider = provider
+        self.free_text_handler = FreeTextHandler(provider)
 
     def handle(self, book_name, user_id, message):
-        # this should use the user_id to get the book_name, but well..
         page_id = message.split('-')[0]
 
         try:
             page = self.provider.get_page(book_name, page_id)
         except Exception:
             logger.warn('page not found: %s', page_id)
-            return self.handle_free_text(book_name, user_id, message)
+            return self.free_text_handler.handle(book_name, user_id, message)
 
         page = self.check_juction(user_id, page)
 
         if 'options' not in page:
             logger.info('options not found for %s, add previous.', page_id)
             actions = self.provider.get_actions(user_id)
-            page['options'] = self.get_last_options(
-                book_name, page_id, actions)
+            page['options'] = self.provider.get_last_valid_page(
+                book_name, message, actions)['options']
 
         self.provider.record_action(user_id, page_id)
 
@@ -49,30 +49,3 @@ class AdventureHandler(Handler):
             else:
                 page['text'] = parts[0] + parts[3]
         return page
-
-    def handle_free_text(self, book_name, user_id, message):
-        logger.info('handle free text from %s: %s', user_id, message)
-        self.provider.record_action(user_id, message)
-
-        actions = self.provider.get_actions(user_id)
-        options = self.get_last_options(book_name, message, actions)
-
-        page = {}
-        page['text'] = texts[environ['LAN']]['free_text'] % message
-        page['options'] = options
-
-        return page
-
-    def get_last_options(self, book_name, action, actions):
-        logger.info('get last options: %s; %s', actions, action)
-        actions = list(filter(lambda a: a != action, actions))
-        if not str(actions[-1]).isdigit():
-            return self.get_last_options(book_name, actions.pop(), actions)
-        try:
-            page = self.provider.get_page(book_name, actions[-1])
-        except Exception:
-            return self.get_last_options(book_name, actions.pop(), actions)
-        if 'options' in page:
-            return page['options']
-        else:
-            return self.get_last_options(book_name, actions.pop(), actions)
