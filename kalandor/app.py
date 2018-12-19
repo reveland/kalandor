@@ -2,6 +2,7 @@ from flask import Flask, request, Response
 import json
 import logging.config
 from kalandor.chatbot.viber_chatbot import ViberChatBot
+from kalandor.chatbot.facebook_chatbot import FacebookChatBot
 from kalandor.handler.message_handler import MessageHandler
 
 with open('log_config.json', 'r') as log_config_json:
@@ -11,6 +12,7 @@ logging.config.dictConfig(log_config_dict)
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
 viber_chatbot = ViberChatBot()
+facebook_chatbot = FacebookChatBot()
 message_handler = MessageHandler()
 
 
@@ -39,7 +41,27 @@ def viber_hook():
                     message['user_id'], message['text'])
         answer = message_handler.handle(message['user_id'], message['text'])
         logger.info('viber answer send to %s', message['user_id'])
+        logger.debug('%s', answer)
         viber_chatbot.send_message(message['user_id'], answer)
+    return Response(status=200)
+
+
+@app.route('/facebook_hook', methods=['GET'])
+def facebook_verify():
+    return facebook_chatbot.verify(request)
+
+
+@app.route('/facebook_hook', methods=['POST'])
+def facebook_hook():
+    logger.debug('Facebook hook receive request: %s', request)
+    message = facebook_chatbot.get_message(request)
+    if message is not None:
+        logger.info('Facebook message receive from %s: %s',
+                    message['user_id'], message['text'])
+        answer = message_handler.handle(message['user_id'], message['text'])
+        logger.info('Facebook answer send to %s', message['user_id'])
+        logger.debug('%s', answer)
+        facebook_chatbot.send_message(message['user_id'], answer)
     return Response(status=200)
 
 
