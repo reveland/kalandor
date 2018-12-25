@@ -25,4 +25,7 @@ class FreeTextHandler(Handler):
         page['text'] = texts[environ['LAN']]['free_text'] % message
         page['options'] = options
 
+        if environ['DEFAULT_MESSAGE'] == 'off':
+            page = {}
+
         return page

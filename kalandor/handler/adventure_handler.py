@@ -27,9 +27,12 @@ class AdventureHandler(Handler):
 
         if 'options' not in page:
             logger.info('options not found for %s, add previous.', page_id)
-            actions = self.provider.get_actions(user_id)
-            page['options'] = self.provider.get_last_valid_page(
-                book_name, message, actions)['options']
+            try:
+                actions = self.provider.get_actions(user_id)
+                page['options'] = self.provider.get_last_valid_page(
+                    book_name, message, actions)['options']
+            except KeyError:
+                page['options'] = []
 
         self.provider.record_action(user_id, page_id)
 
