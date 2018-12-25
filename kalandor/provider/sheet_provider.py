@@ -66,9 +66,9 @@ class SheetProvider(Provider):
             row_index = self.user_sheet.find(user_id).row
             current_book_name = self.user_sheet.cell(row_index, 2).value
         except gspread.CellNotFound:
-            self.user_sheet.append_row([user_id, ''])
-            self.user_sheet.append_row(['#', ''])
-            current_book_name = ''
+            current_book_name = os.environ['DEFAULT_BOOK']
+            self.user_sheet.append_row([user_id, current_book_name])
+            self.user_sheet.append_row(['#', 'set_default'])
         if current_book_name is '':
             logger.info('current book was not found for user: %s', user_id)
             return None
