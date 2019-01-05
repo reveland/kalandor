@@ -1,8 +1,8 @@
 from pprint import pprint
 import requests
 
-bot_token = '<bot_token>'
-test_url = "https://kalandor.herokuapp.com/{}".format(bot_token)
+bot_token = '<telegram_token>'
+test_url = "https://<heroku_app_name>.herokuapp.com/{}".format(bot_token)
 
 
 def get_url(method):

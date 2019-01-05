@@ -1,5 +1,6 @@
 import logging
 import os
+import io
 import requests
 import json
 from kalandor.chatbot.chatbot import ChatBot
@@ -37,16 +38,22 @@ class TelegramChatBot(ChatBot):
             data["text"] = answer['text']
             if 'options' in answer:
                 data['reply_markup'] = self.create_markup(answer['options'])
-            requests.post(self.get_url("sendMessage"), data=data)
-        if 'image' in answer:
-            data = {}
-            data["chat_id"] = user_id
-            url_prefix = 'https://drive.google.com/uc?export=download&id='
+            logger.debug(self.get_url("sendMessage"), data)
+            r = requests.post(self.get_url("sendMessage"), data=data)
+            logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
+        if 'image' in answer and not answer['image'] == '':
+            url_prefix = 'http://drive.google.com/uc?export=download&id='
             image_url = url_prefix + answer['image']
-            data["photo"] = image_url
+            with open(answer['image'] + '.png', 'wb') as f:
+                f.write(requests.get(image_url).content)
+            files = {'photo': open(answer['image'] + '.png', 'rb')}
+            data = {'chat_id': user_id}
             if 'options' in answer:
                 data['reply_markup'] = self.create_markup(answer['options'])
-            requests.post(self.get_url("sendPhoto"), data=data)
+            logger.debug("%s, %s, %s", self.get_url("sendPhoto"), files, data)
+            r = requests.post(self.get_url("sendPhoto"),
+                              files=files, data=data)
+            logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
 
     def create_markup(self, options):
         reply_markup = {}
