@@ -1,6 +1,5 @@
 import logging
 import os
-import io
 import requests
 import json
 from kalandor.chatbot.chatbot import ChatBot
@@ -42,17 +41,13 @@ class TelegramChatBot(ChatBot):
             r = requests.post(self.get_url("sendMessage"), data=data)
             logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
         if 'image' in answer and not answer['image'] == '':
-            url_prefix = 'http://drive.google.com/uc?export=download&id='
-            image_url = url_prefix + answer['image']
-            with open(answer['image'] + '.png', 'wb') as f:
-                f.write(requests.get(image_url).content)
-            files = {'photo': open(answer['image'] + '.png', 'rb')}
+            if not os.path.isfile('./' + answer['image'] + '.png'):
+                self.download_image(answer['image'])
+            path = './' + answer['image'] + '.png'
+            files = {'photo': open(path, 'rb')}
             data = {'chat_id': user_id}
-            if 'options' in answer:
-                data['reply_markup'] = self.create_markup(answer['options'])
-            logger.debug("%s, %s, %s", self.get_url("sendPhoto"), files, data)
-            r = requests.post(self.get_url("sendPhoto"),
-                              files=files, data=data)
+            url = self.get_url('sendPhoto')
+            r = requests.post(url, files=files, data=data)
             logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
 
     def create_markup(self, options):
@@ -64,3 +59,8 @@ class TelegramChatBot(ChatBot):
         TELEGRAM_API_TOKEN = os.environ["TELEGRAM_API_TOKEN"]
         TELEGRAM_BASE_URL = 'https://api.telegram.org/bot{}/{}'
         return TELEGRAM_BASE_URL.format(TELEGRAM_API_TOKEN, method)
+
+    def download_image(self, img_id):
+        url = 'https://drive.google.com/uc?export=download&id=' + img_id
+        r = requests.get(url, allow_redirects=True)
+        open(img_id + '.png', 'wb').write(r.content)
