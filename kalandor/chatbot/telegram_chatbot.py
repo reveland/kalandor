@@ -25,19 +25,18 @@ class TelegramChatBot(ChatBot):
                 else:
                     return None
             elif 'callback_query' in update:
-                if "message" in update['callback_query']:
-                    if 'text' in update['callback_query']['message']:
-                        message = {}
-                        user_id = update['callback_query']['from']['id']
-                        message['user_id'] = user_id
-                        message['text'] = update['callback_query']['data']
-                        logger.info(
-                            'Telegram chatbot received callback: %s', message)
-                        return message
-                    else:
-                        return None
+                message = {}
+                if 'data' in update['callback_query']:
+                    message['text'] = update['callback_query']['data']
                 else:
                     return None
+                if 'from' in update['callback_query']:
+                    user_id = update['callback_query']['from']['id']
+                    message['user_id'] = user_id
+                else:
+                    return None
+                logger.info('Telegram chatbot received callback: %s', message)
+                return message
             else:
                 return None
         else:
@@ -45,21 +44,23 @@ class TelegramChatBot(ChatBot):
 
     def send_message(self, user_id, answer):
         logger.debug('Telegram chatbot send answer to %s: %s', user_id, answer)
+        data = {}
+        data["chat_id"] = user_id
         if 'text' in answer:
-            data = {}
-            data["chat_id"] = user_id
             data["text"] = answer['text']
-            if 'options' in answer:
+            if 'options' in answer and 'image' not in answer:
                 data['reply_markup'] = self.create_keyboard(answer['options'])
             logger.debug(self.get_url("sendMessage"), data)
             r = requests.post(self.get_url("sendMessage"), data=data)
             logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
         if 'image' in answer and not answer['image'] == '':
+            if 'options' in answer:
+                data['reply_markup'] = self.create_keyboard(answer['options'])
             if not os.path.isfile('./' + answer['image'] + '.png'):
                 self.download_image(answer['image'])
             path = './' + answer['image'] + '.png'
             files = {'photo': open(path, 'rb')}
-            data = {'chat_id': user_id}
+            data['chat_id'] = user_id
             url = self.get_url('sendPhoto')
             r = requests.post(url, files=files, data=data)
             logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
