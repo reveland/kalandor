@@ -48,7 +48,7 @@ class ViberChatBot(ChatBot):
             raise 'client failed receiving message. failure: {0}'.format(
                 viber_request)
         else:
-            raise 'Unexpected Message Type'
+            pass
 
     def send_message(self, user_id, answer):
         viber_answer = []
