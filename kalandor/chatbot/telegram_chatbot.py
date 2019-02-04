@@ -24,6 +24,20 @@ class TelegramChatBot(ChatBot):
                     return message
                 else:
                     return None
+            elif 'callback_query' in update:
+                if "message" in update['callback_query']:
+                    if 'text' in update['callback_query']['message']:
+                        message = {}
+                        user_id = update['callback_query']['from']['id']
+                        message['user_id'] = user_id
+                        message['text'] = update['callback_query']['data']
+                        logger.info(
+                            'Telegram chatbot received callback: %s', message)
+                        return message
+                    else:
+                        return None
+                else:
+                    return None
             else:
                 return None
         else:
