@@ -36,7 +36,7 @@ class TelegramChatBot(ChatBot):
             data["chat_id"] = user_id
             data["text"] = answer['text']
             if 'options' in answer:
-                data['reply_markup'] = self.create_markup(answer['options'])
+                data['reply_markup'] = self.create_keyboard(answer['options'])
             logger.debug(self.get_url("sendMessage"), data)
             r = requests.post(self.get_url("sendMessage"), data=data)
             logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
@@ -50,10 +50,12 @@ class TelegramChatBot(ChatBot):
             r = requests.post(url, files=files, data=data)
             logger.debug("%s, %s, %s", r.status_code, r.reason, r.content)
 
-    def create_markup(self, options):
-        reply_markup = {}
-        reply_markup['keyboard'] = map(lambda o: [o], options)
-        return json.dumps(reply_markup, separators=(',', ':')).replace(' ', '')
+    def create_button(self, option):
+        return [{'text': option.split('-')[-1], 'callback_data': option}]
+
+    def create_keyboard(self, options):
+        buttons = list(map(self.create_button, options))
+        return json.dumps({'inline_keyboard': buttons})
 
     def get_url(self, method):
         TELEGRAM_API_TOKEN = os.environ["TELEGRAM_API_TOKEN"]
